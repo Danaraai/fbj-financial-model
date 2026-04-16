@@ -2,7 +2,7 @@ import streamlit as st
 import pathlib
 
 st.set_page_config(
-    page_title="FBJ × Amphora — 3PL Financial Model",
+    page_title="FBJ Financial Model",
     page_icon="📊",
     layout="wide",
 )
