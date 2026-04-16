@@ -241,11 +241,21 @@ function calcMonth(m,p){
 
   const wms   = to>p.wms_threshold?0:to*p.wms_fee;
   const integ = m===p.integ_month?p.integ_cost:0;
+
+  // Pick/pack cost: FBJ's actual cost to fulfill each order.
+  // Revenue side charges $5.72/order (at mid-tier); cost side is $5.20/order.
+  // This applies in BOTH modes — the pick/pack cost is never free.
+  // Marginal mode means ~$0.25 additional overhead (workers already employed by JA),
+  // NOT zero pick/pack cost. Always deduct to avoid phantom margins.
+  const pick_cost = to * (2.75 + p.avg_units * 0.95 + 0.363); // $5.203/order at 2.2 avg units
+
   let total_cost;
   if(p.cost_mode==='MARGINAL'){
-    total_cost = to*.25+cost_inb+cost_ret+wms+integ;
+    // Marginal: pick/pack labor already employed by JA, so just light overhead on top
+    total_cost = pick_cost + to*0.25 + cost_inb + cost_ret + wms + integ;
   } else {
-    total_cost = to*(2.48+.363)+cost_inb+cost_ret+wms+integ+total_rev*.05;
+    // Fully-Loaded: pick/pack cost + heavier burden (new resources, space, admin)
+    total_cost = pick_cost + to*0.25 + cost_inb + cost_ret + wms + integ + total_rev*0.05;
   }
   return {m,ab,nb,ao:Math.round(ao),fo:Math.round(fo),to:Math.round(to),
     rev_fulfill,rev_ship,rev_stor,rev_inb,rev_ret,rev_mgmt,rev_onb,
